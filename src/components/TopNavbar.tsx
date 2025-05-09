@@ -1,16 +1,36 @@
 // src/components/TopNavbar.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
+import { createPortal } from 'react-dom';
 import { FaHome, FaUsers, FaEnvelope, FaBell, FaUser, FaSearch, FaBars } from 'react-icons/fa';
 import { FaReact } from 'react-icons/fa6';
 
 export default function TopNavbar() {
+  const [mounted, setMounted] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const meButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const { data: session, status } = useSession();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleDropdownToggle = () => {
+    if (meButtonRef.current) {
+      const rect = meButtonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.right - 192 // Subtract dropdown width
+      });
+      setDropdownOpen(!dropdownOpen);
+    }
+  };
 
   const handleLogout = () => {
     signOut({ callbackUrl: '/auth/signin' });
@@ -64,45 +84,53 @@ export default function TopNavbar() {
               <FaBell className="w-6 h-6 mb-0.5" />
               <span className="text-xs">Notifications</span>
             </Link>
-            {status === 'authenticated' ? (
-              <div className="relative">
-                <button
-                  onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex flex-col items-center text-gray-600 hover:text-indigo-600 focus:outline-none"
-                >
-                  <FaUser className="w-6 h-6 mb-0.5" />
-                  <span className="text-xs">Me</span>
-                </button>
-                {dropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white shadow-md rounded-md py-2">
-                    <Link
-                      href="/dashboard"
-                      className="block px-4 py-2 text-gray-600 hover:bg-gray-100"
-                      onClick={() => setDropdownOpen(false)}
+            <div className="relative">
+              {status === 'authenticated' ? (
+                <div className="relative">
+                  <button
+                    ref={meButtonRef}
+                    onClick={handleDropdownToggle}
+                    className="flex flex-col items-center text-gray-600 hover:text-indigo-600 focus:outline-none"
+                  >
+                    <FaUser className="w-6 h-6 mb-0.5" />
+                    <span className="text-xs">Me</span>
+                  </button>
+                  {dropdownOpen && mounted && createPortal(
+                    <div 
+                      className="fixed w-48 bg-white shadow-lg rounded-md py-2 z-[9999]"
+                      style={{ top: `${dropdownPosition.top}px`, left: `${dropdownPosition.left}px` }}
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      Dashboard
-                    </Link>
-                    <Link
-                      href={`/${session?.user?.username}`}
-                      className="block px-4 py-2 text-gray-600 hover:bg-gray-100"
-                      onClick={() => setDropdownOpen(false)}
-                    >
-                      Profile
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link href="/auth/signin" className="text-gray-600 hover:text-indigo-600">
-                Sign In
-              </Link>
-            )}
+                      <Link
+                        href="/dashboard"
+                        className="block px-4 py-2 text-gray-600 hover:bg-gray-100"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        Dashboard
+                      </Link>
+                      <Link
+                        href={`/${session?.user?.username}`}
+                        className="block px-4 py-2 text-gray-600 hover:bg-gray-100"
+                        onClick={() => setDropdownOpen(false)}
+                      >
+                        Profile
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-gray-600 hover:bg-gray-100"
+                      >
+                        Logout
+                      </button>
+                    </div>,
+                    document.body
+                  )}
+                </div>
+              ) : (
+                <Link href="/auth/signin" className="text-gray-600 hover:text-indigo-600">
+                  Sign In
+                </Link>
+              )}
+            </div>
           </div>
         </div>
 

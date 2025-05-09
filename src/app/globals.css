@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+
+
+
+
+
+
+
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -20,8 +28,9 @@ input {
   @apply border border-gray-200 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500;
 }
 
-html, body {
-  background: #f3f2ef !important;
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 body {

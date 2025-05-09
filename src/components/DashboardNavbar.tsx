@@ -4,8 +4,12 @@ import Link from 'next/link';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
-  { label: 'Products', href: '/dashboard/products' },
+  { label: 'Products', href: '/products' },
+  { label: 'Sales', href: '/dashboard/sales' },
+  { label: 'Procurement', href: '/dashboard/procurement' },
   { label: 'People', href: '/dashboard/people' },
+  { label: 'Intranet', href: '/dashboard/intranet' },
+  { label: 'Resources', href: '/dashboard/resources' },
 ];
 
 export default function DashboardNavbar() {
@@ -22,7 +26,8 @@ export default function DashboardNavbar() {
           )}
           <span className="ml-3 font-semibold text-lg text-gray-900">{businessName}</span>
         </div>
-        <div className="flex-1 flex items-center space-x-6">
+        <div className="flex-grow"></div>
+        <div className="flex items-center space-x-6 justify-center flex-shrink-0" style={{ minWidth: '300px' }}>
           {navItems.map((item) => (
             <Link
               key={item.href}

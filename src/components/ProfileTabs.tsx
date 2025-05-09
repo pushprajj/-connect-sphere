@@ -1,6 +1,79 @@
 // src/components/ProfileTabs.tsx
 'use client';
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
+
+interface Product {
+  id?: string;
+  name: string;
+  description: string;
+  quantity: number;
+  cost: number;
+  price: number;
+  photo_url: string;
+  availability: string;
+  business_id: string;
+}
+
+function ProductCards({ businessId }: { businessId: string }) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchProducts() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/products');
+        if (!res.ok) throw new Error('Failed to fetch products');
+        const data = await res.json();
+        setProducts((data.products || []).filter((p: Product) => p.business_id && p.business_id != '' && p.business_id != '0' && p.business_id != null && p.business_id == businessId));
+      } catch (e) {
+        setError('Failed to load products');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [businessId]);
+
+  if (loading) return <div className="text-gray-500">Loading products...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+  if (!products.length) return <div className="text-gray-500">No products found.</div>;
+
+  return (
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mt-4">
+      {products.map(product => (
+        <div key={product.id} className="bg-white rounded-lg shadow p-4 flex flex-col hover:shadow-md transition">
+          {product.photo_url ? (
+  <div className="-mx-4 mb-3">
+    <img src={product.photo_url} alt={product.name} className="w-full h-40 object-cover rounded-t-lg" />
+  </div>
+) : (
+  <div className="-mx-4 mb-3">
+    <div className="w-full h-40 bg-gray-100 rounded-t-lg flex items-center justify-center text-gray-400">No Image</div>
+  </div>
+)}
+          <h3 className="font-semibold text-lg text-gray-800 mb-1">{product.name}</h3>
+          <div className="text-indigo-600 font-bold mb-1">
+  {typeof product.price === 'number' && !isNaN(product.price)
+    ? `$${product.price.toFixed(2)}`
+    : product.price && !isNaN(Number(product.price))
+      ? `$${Number(product.price).toFixed(2)}`
+      : 'No price'}
+</div>
+          <div className="text-gray-600 text-sm line-clamp-3 mb-2">{product.description}</div>
+          <div className="mt-auto">
+  <span className={`inline-block px-2 py-1 text-xs rounded font-semibold ${product.availability === 'Available' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+    {product.availability}
+  </span>
+</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -544,22 +617,22 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
   </div>
 )}
               {activeTab === 'products' && (
-                <div>
-                  <div className="flex items-center">
-                    <h2 className="text-xl font-semibold text-gray-800">Products/Services</h2>
-                    {isOwnProfile && (
-                      <button
-                        className="ml-2 text-gray-400 hover:text-indigo-600"
-                        aria-label="Edit products/services"
-                        onClick={() => router.push('/dashboard')}
-                      >
-                        <FaEdit className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                  <p className="text-gray-600 mt-2">Products and services coming soon.</p>
-                </div>
-              )}
+  <div>
+    <div className="flex items-center mb-4">
+      <h2 className="text-xl font-semibold text-gray-800">Products/Services</h2>
+      {isOwnProfile && (
+        <button
+          className="ml-2 text-gray-400 hover:text-indigo-600"
+          aria-label="Edit products/services"
+          onClick={() => router.push('/products') }
+        >
+          <FaEdit className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+    <ProductCards businessId={business.id} />
+  </div>
+)}
               {activeTab === 'people' && (
                 <div>
                   <div className="flex items-center">
