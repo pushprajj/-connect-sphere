@@ -1,6 +1,8 @@
 'use client';
 
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
+import { useSession } from 'next-auth/react';
+import DashboardTopNavbar from '@/components/DashboardTopNavbar';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { FiUsers, FiDollarSign, FiPackage, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { useCachedFetch } from '@/hooks/useCachedFetch';
@@ -28,7 +30,10 @@ const fetchDashboardStats = async (): Promise<DashboardStats> => {
   };
 };
 
+
+
 export default function Dashboard() {
+  const { data: session } = useSession();
   const { data: stats, isLoading, error, refetch } = useCachedFetch<DashboardStats>({
     key: 'dashboard_stats',
     fetchFn: fetchDashboardStats,
@@ -64,82 +69,67 @@ export default function Dashboard() {
     );
   }
 
+  // Try to get business info from the profile section if available, else fallback to session or default
+  // If you have a global context or state for business/profile, use that here
+  let businessName = session?.user?.business_name || 'Your Business';
+  let businessLogo = session?.user?.business_logo || session?.user?.image || '/default-logo.png';
+
   return (
     <AuthenticatedLayout>
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Main Content (Left) */}
-        <div className="flex-1 min-w-0">
-          <div className="bg-white shadow-md rounded-lg mb-6">
-            <div className="p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard</h1>
-                  <p className="mt-2 text-gray-600">Welcome back! Here's your business overview.</p>
-                </div>
-                <button
-                  onClick={refetch}
-                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                >
-                  <FiRefreshCw className="w-4 h-4 mr-2" />
-                  Refresh Data
-                </button>
+      <DashboardTopNavbar businessName={businessName} businessLogo={businessLogo} />
+      <div className="flex flex-col gap-6 px-4 md:px-8 max-w-[1128px] mx-auto">
+        <div className="bg-white shadow-md rounded-lg mb-6 mt-6">
+          <div className="p-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard</h1>
+                <p className="mt-2 text-gray-600">Welcome back! Here's your business overview.</p>
+              </div>
+              <button
+                onClick={refetch}
+                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+              >
+                <FiRefreshCw className="w-4 h-4 mr-2" />
+                Refresh Data
+              </button>
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <div className="p-3 bg-blue-100 rounded-full">
+                <FiUsers className="w-6 h-6 text-blue-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Employees</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats?.totalEmployees}</p>
               </div>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center">
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <FiUsers className="w-6 h-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Employees</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats?.totalEmployees}</p>
-                </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <div className="p-3 bg-green-100 rounded-full">
+                <FiDollarSign className="w-6 h-6 text-green-600" />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Sales</p>
+                <p className="text-2xl font-semibold text-gray-900">${stats?.totalSales.toLocaleString()}</p>
               </div>
             </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-full">
-                  <FiDollarSign className="w-6 h-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Sales</p>
-                  <p className="text-2xl font-semibold text-gray-900">${stats?.totalSales.toLocaleString()}</p>
-                </div>
+          </div>
+          <div className="bg-white p-6 rounded-lg shadow-sm">
+            <div className="flex items-center">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <FiPackage className="w-6 h-6 text-purple-600" />
               </div>
-            </div>
-
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <div className="flex items-center">
-                <div className="p-3 bg-purple-100 rounded-full">
-                  <FiPackage className="w-6 h-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Products</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stats?.totalProducts}</p>
-                </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">Total Products</p>
+                <p className="text-2xl font-semibold text-gray-900">{stats?.totalProducts}</p>
               </div>
             </div>
           </div>
         </div>
-
-        {/* Sidebar (Right) */}
-        <aside className="w-full lg:w-80 flex-shrink-0">
-          <div className="bg-white shadow-md rounded-lg p-4 sticky top-4">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h3>
-            <div className="space-y-4">
-              <div className="bg-gray-100 p-4 rounded-md">
-                <p className="text-gray-600">Add New Employee</p>
-              </div>
-              <div className="bg-gray-100 p-4 rounded-md">
-                <p className="text-gray-600">View Reports</p>
-              </div>
-            </div>
-          </div>
-        </aside>
       </div>
     </AuthenticatedLayout>
   );

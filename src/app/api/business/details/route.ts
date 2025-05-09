@@ -12,7 +12,7 @@ export async function PUT(request: NextRequest) {
     const client = await pool.connect();
     try {
       // Validate the field name to prevent SQL injection
-      const validFields = ['website', 'location', 'industry', 'size', 'founded_year'];
+      const validFields = ['website', 'location', 'industry', 'size', 'founded_year', 'tagline', 'description'];
       if (!validFields.includes(field)) {
         return NextResponse.json({ error: 'Invalid field name' }, { status: 400 });
       }

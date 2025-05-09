@@ -2,10 +2,15 @@
 'use client';
 import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { FaBriefcase, FaMapMarkerAlt, FaGlobe, FaEdit, FaCamera, FaUsers, FaCalendar, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import ImageUploadModal from './ImageUploadModal';
+import EditBusinessNameModal from './EditBusinessNameModal';
+import EditBusinessInfoModal from './EditBusinessInfoModal';
+import EditTaglineModal from './EditTaglineModal';
+import EditAboutModal from './EditAboutModal';
 
 interface Update {
   id: string;
@@ -135,12 +140,24 @@ function ResponsiveTabs({ tabs, activeTab, setActiveTab }: { tabs: any[]; active
 }
 
 export default function ProfileTabs({ user, business }: { user: any; business: any }) {
+  const router = useRouter();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = useState('home');
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
   const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const isOwnProfile = session?.user?.username === user?.username;
+  const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
+  const [businessName, setBusinessName] = useState(business.name);
+  const [isEditAboutModalOpen, setIsEditAboutModalOpen] = useState(false);
+  const [businessDescription, setBusinessDescription] = useState(business.description || '');
+  const [showFullHomeDescription, setShowFullHomeDescription] = useState(false);
+  const [isEditInfoModalOpen, setIsEditInfoModalOpen] = useState(false);
+  const [businessWebsite, setBusinessWebsite] = useState(business.website || '');
+  const [businessLocation, setBusinessLocation] = useState(business.location || '');
+  const [businessIndustry, setBusinessIndustry] = useState(business.industry || '');
+  const [businessTagline, setBusinessTagline] = useState(business.tagline || '');
+  const [isEditTaglineModalOpen, setIsEditTaglineModalOpen] = useState(false);
 
   // Sample updates data - replace with actual data from your backend
   const updates: Update[] = [
@@ -160,7 +177,7 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
 
   const tabs = [
     { id: 'home', label: 'Home' },
-    { id: 'about', label: 'About Us' },
+    { id: 'about', label: 'About' },
     { id: 'products', label: 'Products/Services' },
     { id: 'people', label: 'People' },
     { id: 'contact', label: 'Contact' },
@@ -251,82 +268,160 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
                     <button
                       onClick={() => setIsLogoModalOpen(true)}
                       className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow-md hover:bg-gray-100"
+                    />
+                  )}
+                </div>
+                {/* Business Name */}
+                <div className="flex items-center mb-5">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{businessName}</h1>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setIsEditNameModalOpen(true)}
+                      className="ml-2 text-gray-400 hover:text-indigo-600"
+                      aria-label="Edit business name"
                     >
-                      <FaCamera className="w-3 h-3 text-gray-600" />
+                      <FaEdit className="w-5 h-5" />
                     </button>
                   )}
                 </div>
-                <div>
+                {/* Tagline */}
+                <div className="flex items-center mb-5">
+                  <h3 className="text-xl font-medium text-gray-600 m-0">{businessTagline || <span className="italic text-gray-400">Add a tagline</span>}</h3>
+                  {isOwnProfile && (
+                    <button
+                      onClick={() => setIsEditTaglineModalOpen(true)}
+                      className="ml-2 text-gray-400 hover:text-indigo-600"
+                      aria-label="Edit tagline"
+                    >
+                      <FaEdit className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-600 text-sm mb-5">
                   <div className="flex items-center">
-                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">{business.name}</h1>
+                    <FaBriefcase className="w-4 h-4 mr-1" />
+                    <span>{businessIndustry || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaMapMarkerAlt className="w-4 h-4 mr-1" />
+                    <span>{businessLocation || 'Not provided'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <FaGlobe className="w-4 h-4 mr-1" />
+                    <span>{businessWebsite || 'Not provided'}</span>
                     {isOwnProfile && (
-                      <Link href="/profile/edit" className="ml-2 text-gray-400 hover:text-indigo-600">
-                        <FaEdit className="w-5 h-5" />
-                      </Link>
+                      <button
+                        onClick={() => setIsEditInfoModalOpen(true)}
+                        className="ml-2 text-gray-400 hover:text-indigo-600"
+                        aria-label="Edit business info"
+                      >
+                        <FaEdit className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-gray-600 text-sm mt-3">
+                  {business.size && (
                     <div className="flex items-center">
-                      <FaBriefcase className="w-4 h-4 mr-1" />
-                      <span>{business.description?.split('Industry: ')[1] || 'Not specified'}</span>
+                      <FaUsers className="w-4 h-4 mr-1" />
+                      <span>{business.size}</span>
                     </div>
+                  )}
+                  {business.founded_year && (
                     <div className="flex items-center">
-                      <FaMapMarkerAlt className="w-4 h-4 mr-1" />
-                      <span>{business.location || 'Not provided'}</span>
+                      <FaCalendar className="w-4 h-4 mr-1" />
+                      <span>Founded {business.founded_year}</span>
                     </div>
-                    <div className="flex items-center">
-                      <FaGlobe className="w-4 h-4 mr-1" />
-                      <span>{business.website || 'Not provided'}</span>
-                    </div>
-                    {business.size && (
-                      <div className="flex items-center">
-                        <FaUsers className="w-4 h-4 mr-1" />
-                        <span>{business.size}</span>
-                      </div>
-                    )}
-                    {business.founded_year && (
-                      <div className="flex items-center">
-                        <FaCalendar className="w-4 h-4 mr-1" />
-                        <span>Founded {business.founded_year}</span>
-                      </div>
-                    )}
-                  </div>
+                  )}
                 </div>
 
-                {/* Description Section */}
-                {business.description && (
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-800">About</h3>
-                      {isOwnProfile && (
-                        <Link href="/profile/edit" className="text-gray-400 hover:text-indigo-600">
-                          <FaEdit className="w-4 h-4" />
-                        </Link>
-                      )}
-                    </div>
-                    <div className="mt-2">
-                      <p className={`text-gray-600 ${!showFullDescription ? 'line-clamp-3' : ''}`}>
-                        {business.description}
-                      </p>
-                      {business.description.length > 150 && (
-                        <button
-                          onClick={() => setShowFullDescription(!showFullDescription)}
-                          className="mt-2 text-indigo-600 hover:text-indigo-800 flex items-center text-sm"
-                        >
-                          {showFullDescription ? (
-                            <>
-                              Show less <FaChevronUp className="ml-1 w-3 h-3" />
-                            </>
-                          ) : (
-                            <>
-                              Show more <FaChevronDown className="ml-1 w-3 h-3" />
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
+                {isOwnProfile && (
+                  <div className="flex gap-4 mt-6">
+                    <button
+                      className="px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
+                      type="button"
+                    >
+                      Enhance Profile
+                    </button>
+                    <button
+                      className="px-5 py-2 bg-gray-100 text-gray-800 rounded-lg shadow hover:bg-gray-200 transition"
+                      type="button"
+                    >
+                      AI Insights
+                    </button>
                   </div>
                 )}
+
+                {/* Edit Tagline Modal */}
+                <EditTaglineModal
+                  isOpen={isEditTaglineModalOpen}
+                  currentTagline={businessTagline}
+                  onClose={() => setIsEditTaglineModalOpen(false)}
+                  onSave={async (newTagline: string) => {
+                    try {
+                      const res = await fetch('/api/business/details', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ field: 'tagline', value: newTagline, userId: user.id }),
+                      });
+                      if (!res.ok) throw new Error('Failed to update tagline');
+                      setBusinessTagline(newTagline);
+                    } catch (e) {
+                      alert('Failed to update tagline.');
+                    }
+                  }}
+                />
+
+                {/* Edit Business Info Modal */}
+                <EditBusinessInfoModal
+                  isOpen={isEditInfoModalOpen}
+                  currentWebsite={businessWebsite}
+                  currentLocation={businessLocation}
+                  currentIndustry={businessIndustry}
+                  onClose={() => setIsEditInfoModalOpen(false)}
+                  onSave={async (website, location, industry) => {
+                    try {
+                      const updateField = async (field: string, value: string) => {
+                        const res = await fetch('/api/business/details', {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ field, value, userId: user.id }),
+                        });
+                        if (!res.ok) throw new Error(`Failed to update ${field}`);
+                      };
+                      await Promise.all([
+                        updateField('website', website),
+                        updateField('location', location),
+                        updateField('industry', industry),
+                      ]);
+                      setBusinessWebsite(website);
+                      setBusinessLocation(location);
+                      setBusinessIndustry(industry);
+                    } catch (e) {
+                      alert('Failed to update business info.');
+                    }
+                  }}
+                />
+
+                {/* Edit Business Name Modal */}
+                <EditBusinessNameModal
+                  isOpen={isEditNameModalOpen}
+                  currentName={businessName}
+                  onClose={() => setIsEditNameModalOpen(false)}
+                  onSave={async (newName: string) => {
+                    try {
+                      const formData = new FormData();
+                      formData.append('userId', user.id);
+                      formData.append('name', newName);
+                      const res = await fetch('/api/business', {
+                        method: 'PUT',
+                        body: formData,
+                      });
+                      if (!res.ok) throw new Error('Failed to update business name');
+                      setBusinessName(newName);
+                    } catch (e) {
+                      alert('Failed to update business name.');
+                    }
+                  }}
+                />
 
                 {!isOwnProfile && (
                   <div className="flex flex-wrap gap-4 mt-4">
@@ -374,10 +469,29 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
             </div>
             <div className="p-4 sm:p-6">
               {activeTab === 'home' && (
-                <div className="space-y-6">
-                  {/* Updates Section */}
-                  <div className="bg-white shadow rounded-lg p-6">
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Updates</h3>
+  <div className="space-y-6">
+    {/* About Us Section */}
+    <div className="bg-white shadow rounded-lg p-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-2">Overview</h3>
+      <div className="mb-4">
+  <div
+    className={`text-gray-600 ${showFullHomeDescription ? '' : 'line-clamp-5'} overflow-hidden`}
+    style={{ display: '-webkit-box', WebkitLineClamp: showFullHomeDescription ? 'none' : 5, WebkitBoxOrient: 'vertical' }}
+    dangerouslySetInnerHTML={{ __html: businessDescription || 'No about info yet.' }}
+  />
+  {businessDescription && (
+    <button
+      className="text-indigo-600 hover:underline text-sm mt-1"
+      onClick={() => setShowFullHomeDescription(v => !v)}
+    >
+      {showFullHomeDescription ? 'View less' : 'View more'}
+    </button>
+  )}
+</div>
+    </div>
+    {/* Updates Section */}
+    <div className="bg-white shadow rounded-lg p-6">
+      <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Updates</h3>
                     <div className="space-y-4">
                       {updates.map((update) => (
                         <div key={update.id} className="border-b border-gray-200 pb-4">
@@ -395,19 +509,53 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
                 </div>
               )}
               {activeTab === 'about' && (
-                <div>
-                  <div className="flex items-center">
-                    <h2 className="text-xl font-semibold text-gray-800">About Us</h2>
-                    {isOwnProfile && <EditButton onClick={() => {}} />}
-                  </div>
-                  <p className="text-gray-600 mt-2">{business.description || 'No about info yet.'}</p>
-                </div>
-              )}
+  <div>
+    <div className="flex items-center">
+      <h2 className="text-xl font-semibold text-gray-800">Overview</h2>
+      {isOwnProfile && (
+        <button
+          className="ml-2 text-gray-400 hover:text-indigo-600"
+          aria-label="Edit about section"
+          onClick={() => setIsEditAboutModalOpen(true)}
+        >
+          <FaEdit className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+    <div className="text-gray-600 mt-2" dangerouslySetInnerHTML={{ __html: businessDescription || 'No about info yet.' }} />
+    <EditAboutModal
+      isOpen={isEditAboutModalOpen}
+      currentDescription={businessDescription}
+      onClose={() => setIsEditAboutModalOpen(false)}
+      onSave={async (desc: string) => {
+        try {
+          const res = await fetch('/api/business/details', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ field: 'description', value: desc, userId: user.id }),
+          });
+          if (!res.ok) throw new Error('Failed to update description');
+          setBusinessDescription(desc);
+        } catch (e) {
+          alert('Failed to update About section.');
+        }
+      }}
+    />
+  </div>
+)}
               {activeTab === 'products' && (
                 <div>
                   <div className="flex items-center">
                     <h2 className="text-xl font-semibold text-gray-800">Products/Services</h2>
-                    {isOwnProfile && <EditButton onClick={() => {}} />}
+                    {isOwnProfile && (
+                      <button
+                        className="ml-2 text-gray-400 hover:text-indigo-600"
+                        aria-label="Edit products/services"
+                        onClick={() => router.push('/dashboard')}
+                      >
+                        <FaEdit className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <p className="text-gray-600 mt-2">Products and services coming soon.</p>
                 </div>
