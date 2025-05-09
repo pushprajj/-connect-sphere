@@ -2,7 +2,7 @@
 
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { useSession } from 'next-auth/react';
-import DashboardTopNavbar from '@/components/DashboardTopNavbar';
+import DashboardNavWrapper from './DashboardNavWrapper';
 import { LoadingSpinner } from '@/components/LoadingSpinner';
 import { FiUsers, FiDollarSign, FiPackage, FiAlertCircle, FiRefreshCw } from 'react-icons/fi';
 import { useCachedFetch } from '@/hooks/useCachedFetch';
@@ -75,62 +75,63 @@ export default function Dashboard() {
   let businessLogo = session?.user?.business_logo || session?.user?.image || '/default-logo.png';
 
   return (
-    <AuthenticatedLayout>
-      <DashboardTopNavbar businessName={businessName} businessLogo={businessLogo} />
-      <div className="flex flex-col gap-6 px-4 md:px-8 max-w-[1128px] mx-auto">
-        <div className="bg-white shadow-md rounded-lg mb-6 mt-6">
-          <div className="p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard</h1>
-                <p className="mt-2 text-gray-600">Welcome back! Here's your business overview.</p>
+    <DashboardNavWrapper>
+      <AuthenticatedLayout>
+        <div className="flex flex-col gap-6 px-4 md:px-8 max-w-[1128px] mx-auto">
+          <div className="bg-white shadow-md rounded-lg mb-6">
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Dashboard</h1>
+                  <p className="mt-2 text-gray-600">Welcome back! Here's your business overview.</p>
+                </div>
+                <button
+                  onClick={refetch}
+                  className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                >
+                  <FiRefreshCw className="w-4 h-4 mr-2" />
+                  Refresh Data
+                </button>
               </div>
-              <button
-                onClick={refetch}
-                className="flex items-center px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                <FiRefreshCw className="w-4 h-4 mr-2" />
-                Refresh Data
-              </button>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center">
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <FiUsers className="w-6 h-6 text-blue-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Employees</p>
+                  <p className="text-2xl font-semibold text-gray-900">{stats?.totalEmployees}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center">
+                <div className="p-3 bg-green-100 rounded-full">
+                  <FiDollarSign className="w-6 h-6 text-green-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Sales</p>
+                  <p className="text-2xl font-semibold text-gray-900">${stats?.totalSales.toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <div className="flex items-center">
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <FiPackage className="w-6 h-6 text-purple-600" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-600">Total Products</p>
+                  <p className="text-2xl font-semibold text-gray-900">{stats?.totalProducts}</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <FiUsers className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Employees</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats?.totalEmployees}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-green-100 rounded-full">
-                <FiDollarSign className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Sales</p>
-                <p className="text-2xl font-semibold text-gray-900">${stats?.totalSales.toLocaleString()}</p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <div className="flex items-center">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <FiPackage className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Products</p>
-                <p className="text-2xl font-semibold text-gray-900">{stats?.totalProducts}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </AuthenticatedLayout>
+      </AuthenticatedLayout>
+    </DashboardNavWrapper>
   );
 }

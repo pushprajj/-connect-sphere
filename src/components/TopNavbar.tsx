@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { FaHome, FaUsers, FaEnvelope, FaBell, FaUser, FaSearch, FaBars } from 'react-icons/fa';
+import { FaReact } from 'react-icons/fa6';
 
 export default function TopNavbar() {
   const { data: session, status } = useSession();
@@ -16,12 +17,12 @@ export default function TopNavbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center h-14">
+    <nav className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center h-12">
       <div className="mx-auto max-w-[1128px] px-6 w-full">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-xl font-bold text-gray-800">
-              ConnectSphere
+            <Link href="/" className="flex items-center">
+              <FaReact className="w-8 h-8 text-blue-500 drop-shadow-md" />
             </Link>
             <div className="hidden md:block">
               <div className="relative">
