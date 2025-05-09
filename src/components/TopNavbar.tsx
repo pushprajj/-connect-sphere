@@ -16,8 +16,8 @@ export default function TopNavbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-10 bg-white shadow-md flex items-center h-14">
-      <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 w-full">
+    <nav className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center h-14">
+      <div className="mx-auto max-w-[1128px] px-6 w-full">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-4">
             <Link href="/" className="text-xl font-bold text-gray-800">

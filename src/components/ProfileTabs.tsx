@@ -1,6 +1,6 @@
 // src/components/ProfileTabs.tsx
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useLayoutEffect, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +12,126 @@ interface Update {
   title: string;
   date: string;
   content: string;
+}
+
+
+function ResponsiveTabs({ tabs, activeTab, setActiveTab }: { tabs: any[]; activeTab: string; setActiveTab: (id: string) => void }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [visibleCount, setVisibleCount] = useState(tabs.length);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const moreButtonRef = useRef<HTMLButtonElement | null>(null);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  // Close dropdown only when clicking outside
+  useEffect(() => {
+    if (!moreOpen) return;
+    function handlePointerDown(e: PointerEvent) {
+      setTimeout(() => {
+        if (
+          moreButtonRef.current && moreButtonRef.current.contains(e.target as Node)
+        ) return;
+        if (
+          dropdownRef.current && dropdownRef.current.contains(e.target as Node)
+        ) return;
+        setMoreOpen(false);
+      }, 0);
+    }
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [moreOpen]);
+
+  useLayoutEffect(() => {
+    function updateTabs() {
+      if (!containerRef.current) return;
+      const containerWidth = containerRef.current.offsetWidth;
+      let used = 0;
+      let fitCount = tabs.length;
+      for (let i = 0; i < tabs.length; i++) {
+        const tab = tabRefs.current[i];
+        if (!tab) continue;
+        used += tab.offsetWidth;
+        // 80px is the approx width of the 'More' button
+        if (used + 80 > containerWidth) {
+          fitCount = i;
+          break;
+        }
+      }
+      setVisibleCount(fitCount);
+      if (fitCount < tabs.length) {
+        console.log('Tabs moved to More:', tabs.slice(fitCount).map(t => t.label));
+      } else {
+        console.log('All tabs visible');
+      }
+    }
+    updateTabs();
+    // Use ResizeObserver for more robust resize handling
+    const observer = new window.ResizeObserver(updateTabs);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    window.addEventListener('resize', updateTabs);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', updateTabs);
+    };
+  }, [tabs]);
+
+  const visibleTabs = tabs.slice(0, visibleCount);
+  const overflowTabs = tabs.slice(visibleCount);
+
+  return (
+    <div className="flex flex-nowrap space-x-4 relative overflow-x-hidden w-full" ref={containerRef}>
+      {visibleTabs.map((tab, i) => (
+        <button
+          key={tab.id}
+          ref={el => { tabRefs.current[i] = el; }}
+          onClick={() => setActiveTab(tab.id)}
+          className={`min-w-[110px] px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 ${activeTab === tab.id ? 'text-black font-semibold border-b-2 border-black' : ''}`}
+        >
+          {tab.label}
+        </button>
+      ))}
+      {/* Close dropdown when clicking outside */}
+      {moreOpen && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setMoreOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+      {overflowTabs.length > 0 && (
+        <div className="relative z-50 ml-4">
+          <button
+            ref={moreButtonRef}
+            className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 flex items-center"
+            onClick={e => { e.stopPropagation(); setMoreOpen(v => !v); }}
+            aria-haspopup="true"
+            aria-expanded={moreOpen}
+            type="button"
+          >
+            More <FaChevronDown className="ml-1 w-3 h-3" />
+          </button>
+          {moreOpen && (
+            <div
+              ref={dropdownRef}
+              className="absolute right-0 mt-2 w-44 bg-white border rounded shadow-lg z-50"
+            >
+              {overflowTabs.map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => { setActiveTab(tab.id); setMoreOpen(false); }}
+                  className={`block w-full text-left px-4 py-2 text-sm text-gray-600 hover:bg-gray-100 ${activeTab === tab.id ? 'text-black font-semibold' : ''}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function ProfileTabs({ user, business }: { user: any; business: any }) {
@@ -96,11 +216,11 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
   );
 
   return (
-    <div className="bg-[#f3f2ef] min-h-screen">
+    <div className="bg-[#f3f2ef] min-h-screen w-full">
       <div className="max-w-[1128px] mx-auto grid grid-cols-12 gap-4 pt-6">
         {/* Main Content (Left) */}
         <div className="col-span-12 md:col-span-8 lg:col-span-9 space-y-4">
-          <div className="bg-white border-b border-gray-200 shadow-none rounded-xl overflow-hidden">
+          <div className="bg-white border-b border-gray-200 rounded-xl overflow-hidden">
             <div className="relative h-48 w-full rounded-t-xl">
               <Image
                 src={business.background_image || defaultBackground}
@@ -225,19 +345,17 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
           <div className="bg-white border-t border-gray-200 shadow-none rounded-xl">
             <div>
               <nav className="flex items-center justify-between px-4 py-2 border-b border-gray-200">
-                <div className="flex space-x-4">
-                  {tabs.map((tab) => (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 ${
-                        activeTab === tab.id ? 'text-black font-semibold border-b-2 border-black' : ''
-                      }`}
-                    >
-                      {tab.label}
-                    </button>
-                  ))}
-                </div>
+  <div className="flex space-x-4 overflow-x-auto flex-nowrap w-full scrollbar-hide">
+    {tabs.map((tab) => (
+      <button
+        key={tab.id}
+        onClick={() => setActiveTab(tab.id)}
+        className={`px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 ${activeTab === tab.id ? 'text-black font-semibold border-b-2 border-black' : ''}`}
+      >
+        {tab.label}
+      </button>
+    ))}
+  </div>
                 {isOwnProfile && (
                   <div className="flex items-center space-x-2">
                     <button className="text-blue-600 hover:bg-blue-50 px-3 py-1.5 rounded-md text-sm font-medium">

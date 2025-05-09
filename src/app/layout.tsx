@@ -11,7 +11,7 @@ function RootContent({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#f3f2ef]">
       {status === 'authenticated' && <TopNavbar />}
       <main className={status === 'authenticated' ? 'pt-12' : ''}>
         <div className="mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8">
