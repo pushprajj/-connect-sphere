@@ -1,6 +1,7 @@
 import { useSession } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard' },
@@ -28,16 +29,24 @@ export default function DashboardNavbar() {
         </div>
         <div className="flex-grow"></div>
         <div className="flex items-center space-x-6 justify-center flex-shrink-0" style={{ minWidth: '300px' }}>
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="flex items-center text-gray-800 hover:text-indigo-600 font-medium px-2 py-1 rounded transition-colors"
-              style={{ fontSize: '1rem' }}
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const pathname = usePathname();
+            const isActive = pathname === item.href;
+            return (
+              <div key={item.href} className="relative flex flex-col items-center">
+                <Link
+                  href={item.href}
+                  className={`flex items-center ${isActive ? 'text-indigo-600' : 'text-gray-800'} hover:text-indigo-600 font-medium px-2 py-1 rounded transition-colors`}
+                  style={{ fontSize: '1rem' }}
+                >
+                  {item.label}
+                </Link>
+                {isActive && (
+                  <div className="absolute -bottom-3 h-0.5 w-full bg-indigo-600"></div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </nav>
