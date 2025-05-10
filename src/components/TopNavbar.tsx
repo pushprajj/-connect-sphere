@@ -38,7 +38,7 @@ export default function TopNavbar() {
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-10 bg-white flex items-center h-12">
-      <div className="mx-auto max-w-[1128px] px-6 w-full">
+      <div className="w-full px-4 lg:px-8">
         <div className="flex items-center justify-between h-full">
           <div className="flex items-center gap-4">
             <Link href="/" className="flex items-center">
@@ -49,7 +49,7 @@ export default function TopNavbar() {
                 <input
                   type="text"
                   placeholder="Search profiles..."
-                  className="w-64 p-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+                  className="w-96 p-2 border border-gray-200 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                 />
                 <FaSearch className="absolute right-3 top-2.5 text-gray-400" />
               </div>
