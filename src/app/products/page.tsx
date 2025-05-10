@@ -2,7 +2,7 @@
 
 import AuthenticatedLayout from '@/components/AuthenticatedLayout';
 import { useSession } from 'next-auth/react';
-import { PageWrapper } from '@/components/PageWrapper';
+import ProductNavWrapper from './ProductNavWrapper';
 import ProductTable from '@/components/ProductTable';
 import AddProductModal from '@/components/AddProductModal';
 import React, { useState } from 'react';
@@ -107,84 +107,6 @@ export default function Products() {
     }
   };
 
-  const handleUpdateProduct = async (updatedProduct: Product) => {
-    try {
-      console.log('Attempting to update product:', updatedProduct);
-
-      const res = await fetch(`/api/products/${updatedProduct.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedProduct)
-      });
-
-      console.log('Update response status:', res.status);
-
-      const responseData = await res.json();
-      console.log('Update response data:', responseData);
-
-      if (res.ok) {
-        // Update the local state
-        setProducts(prev => 
-          prev.map(product => 
-            product.id === updatedProduct.id ? responseData : product
-          )
-        );
-        setProductToEdit(null);
-        setModalOpen(false);
-
-        // Optional: Show success message
-        alert('Product updated successfully');
-      } else {
-        // More detailed error handling
-        console.error('Failed to update product:', responseData);
-        
-        // Try to extract a meaningful error message
-        let errorMessage = 'Failed to update product';
-        if (typeof responseData.details === 'string') {
-          errorMessage = responseData.details;
-        } else if (responseData.details && responseData.details.error) {
-          errorMessage = responseData.details.error;
-        } else if (responseData.error) {
-          errorMessage = responseData.error;
-        }
-
-        alert(`Update failed: ${errorMessage}`);
-      }
-    } catch (error) {
-      console.error('Error updating product:', error);
-      
-      // Detailed error handling
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to update product: ${errorMessage}`);
-
-      // Optionally, force a refresh of products to reconcile any discrepancies
-      try {
-        const refreshRes = await fetch('/api/products');
-        const data = await refreshRes.json();
-        setProducts(data.products || []);
-      } catch (refreshError) {
-        console.error('Error refreshing products:', refreshError);
-      }
-    }
-  };
-
-  const handleAddProduct = async (product: Product) => {
-    try {
-      const res = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(product),
-      });
-      if (res.ok) {
-        const { product: newProduct } = await res.json();
-        setProducts((prev) => [newProduct, ...prev]);
-      }
-    } catch (e) {
-      // Optionally show error
-    }
-    setModalOpen(false);
-  };
-
   if (status === 'loading' || loading) {
     return (
       <AuthenticatedLayout>
@@ -196,44 +118,56 @@ export default function Products() {
   }
 
   return (
-    <AuthenticatedLayout>
-      <div className="flex flex-col gap-4 px-4 md:px-8 max-w-[1128px] mx-auto">
-        <PageWrapper>
-          <div className="bg-white shadow rounded-lg">
-            <div className="p-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Products</h1>
-                  <p className="mt-2 text-gray-600">Manage your products here.</p>
-                </div>
-                <button
-                  className="px-5 py-2 bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition"
-                  onClick={() => setModalOpen(true)}
-                >
-                  + Add Product
-                </button>
-              </div>
-            </div>
+    <ProductNavWrapper>
+      <div className="bg-white rounded-xl shadow p-4 overflow-x-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-800">Product Management</h2>
+          <button
+            onClick={() => setModalOpen(true)}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            Add New Product
+          </button>
+        </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <span className="text-gray-600">Loading products...</span>
           </div>
-          <ProductTable 
-          products={products} 
-          onEditProduct={(product) => {
-            setProductToEdit(product);
-            setModalOpen(true);
-          }} 
-          onDeleteProduct={handleDeleteProduct}
-        />
-          <AddProductModal 
-          isOpen={modalOpen} 
-          onClose={() => {
-            setModalOpen(false);
-            setProductToEdit(null);
-          }} 
-          onSave={productToEdit ? handleUpdateProduct : handleAddProduct} 
-          productToEdit={productToEdit} 
-        />
-        </PageWrapper>
+        ) : (
+          <ProductTable
+            products={products}
+            onEditProduct={(product) => {
+              setProductToEdit(product);
+              setModalOpen(true);
+            }}
+            onDeleteProduct={handleDeleteProduct}
+          />
+        )}
+        {modalOpen && (
+          <AddProductModal
+            isOpen={modalOpen}
+            onClose={() => {
+              setModalOpen(false);
+              setProductToEdit(null);
+            }}
+            onSave={(product) => {
+              if (productToEdit) {
+                // Update existing product
+                const updatedProducts = products.map(p => 
+                  p.id === product.id ? product : p
+                );
+                setProducts(updatedProducts);
+              } else {
+                // Add new product
+                setProducts([...products, product]);
+              }
+              setModalOpen(false);
+              setProductToEdit(null);
+            }}
+            productToEdit={productToEdit}
+          />
+        )}
       </div>
-    </AuthenticatedLayout>
+    </ProductNavWrapper>
   );
 }
