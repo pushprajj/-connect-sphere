@@ -6,10 +6,12 @@ interface DashboardNavWrapperProps {
 
 export default function DashboardNavWrapper({ children }: DashboardNavWrapperProps) {
   return (
-    <>
+    <div className="flex">
       <DashboardNavbar />
-      {children}
-    </>
+      <main className="flex-1 ml-64 mt-12 min-h-screen">
+        {children}
+      </main>
+    </div>
   );
 }
 

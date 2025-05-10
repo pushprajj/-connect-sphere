@@ -218,7 +218,7 @@ export default function ProfileTabs({ user, business }: { user: any; business: a
   const [activeTab, setActiveTab] = useState('home');
   const [isLogoModalOpen, setIsLogoModalOpen] = useState(false);
   const [isBackgroundModalOpen, setIsBackgroundModalOpen] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  // Removed unused state
   const isOwnProfile = session?.user?.username === user?.username;
   const [isEditNameModalOpen, setIsEditNameModalOpen] = useState(false);
   const [businessName, setBusinessName] = useState(business.name);
