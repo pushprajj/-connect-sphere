@@ -8,11 +8,11 @@ import { FiHome, FiBox, FiBarChart2, FiShoppingCart, FiUsers, FiGlobe, FiFolder,
 
 const navItems = [
   { name: 'Dashboard', href: '/dashboard', icon: <FiHome size={22}/> },
-  { name: 'Products', href: '/dashboard/products', icon: <FiBox size={22}/> },
+  { name: 'Products', href: '/products', icon: <FiBox size={22}/> },
+  { name: 'Analytics', href: '/dashboard/analytics', icon: <FiBarChart2 size={22}/> },
   { name: 'Orders', href: '/dashboard/orders', icon: <FiShoppingCart size={22}/> },
   { name: 'Customers', href: '/dashboard/customers', icon: <FiUsers size={22}/> },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: <FiBarChart2 size={22}/> },
-  { name: 'Intranet', href: '/dashboard/intranet', icon: <FiGlobe size={22}/> },
+  { name: 'Websites', href: '/dashboard/websites', icon: <FiGlobe size={22}/> },
   { name: 'Resources', href: '/dashboard/resources', icon: <FiFolder size={22}/> },
 ];
 
